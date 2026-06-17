@@ -13,6 +13,7 @@ import {
   Eye,
   Filter,
   X,
+  Award,
 } from 'lucide-react';
 import { getProjects } from '../../services/projects';
 import { getTeam } from '../../services/team';
@@ -55,11 +56,38 @@ export default function AdminDashboard() {
     fetchData();
   }, [selectedSubject, selectedStatus]);
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const isNodeOverdue = (node: Project['nodes'][number]) => {
+    if (node.status === 'delayed') return true;
+    if (node.status === 'completed') return false;
+    const endDate = new Date(node.endDate);
+    endDate.setHours(0, 0, 0, 0);
+    return endDate < today;
+  };
+
   const stats = {
     total: projects.length,
     inProgress: projects.filter(p => p.status === 'in_progress').length,
     completed: projects.filter(p => p.status === 'completed').length,
-    delayed: projects.filter(p => p.status === 'delayed').length,
+    overdueNodes: projects.reduce((sum, p) => sum + p.nodes.filter(isNodeOverdue).length, 0),
+    totalAchievements: projects.reduce((sum, p) => sum + p.nodes.reduce((s, n) => s + n.achievements.length, 0), 0),
+  };
+
+  const getProjectAchievementCount = (project: Project) =>
+    project.nodes.reduce((sum, node) => sum + node.achievements.length, 0);
+
+  const getNodeWithMostAchievements = (project: Project) => {
+    let maxCount = 0;
+    let maxNodeId: string | null = null;
+    for (const node of project.nodes) {
+      if (node.achievements.length > maxCount) {
+        maxCount = node.achievements.length;
+        maxNodeId = node.id;
+      }
+    }
+    return maxNodeId;
   };
 
   const getMemberById = (id: string) => team.find(m => m.id === id);
@@ -72,14 +100,15 @@ export default function AdminDashboard() {
     { title: '项目总数', value: stats.total, icon: LayoutDashboard, color: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-50' },
     { title: '进行中', value: stats.inProgress, icon: FlaskConical, color: 'from-purple-500 to-purple-600', bgColor: 'bg-purple-50' },
     { title: '已完成', value: stats.completed, icon: CheckCircle2, color: 'from-green-500 to-green-600', bgColor: 'bg-green-50' },
-    { title: '逾期预警', value: stats.delayed, icon: AlertTriangle, color: 'from-red-500 to-red-600', bgColor: 'bg-red-50' },
+    { title: '逾期预警', value: stats.overdueNodes, icon: AlertTriangle, color: 'from-red-500 to-red-600', bgColor: 'bg-red-50' },
+    { title: '累计成果', value: stats.totalAchievements, icon: Award, color: 'from-amber-500 to-amber-600', bgColor: 'bg-amber-50' },
   ];
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map(i => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          {[1, 2, 3, 4, 5].map(i => (
             <div key={i} className="bg-white rounded-2xl p-6 animate-pulse">
               <div className="h-4 bg-gray-200 rounded w-24 mb-4"></div>
               <div className="h-8 bg-gray-200 rounded w-16"></div>
@@ -114,7 +143,7 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {statCards.map((card, index) => {
           const Icon = card.icon;
           return (
@@ -215,6 +244,19 @@ export default function AdminDashboard() {
                         <span className={cn('px-3 py-1 text-xs font-medium rounded-full', getStatusColor(project.status))}>
                           {getStatusText(project.status)}
                         </span>
+                        {getProjectAchievementCount(project) > 0 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const expandNodeId = getNodeWithMostAchievements(project);
+                              navigate(`/admin/projects/${project.id}`, { state: { expandNodeId } });
+                            }}
+                            className="flex items-center gap-1 px-3 py-1 bg-amber-50 text-amber-700 text-xs font-medium rounded-full hover:bg-amber-100 transition-colors cursor-pointer"
+                          >
+                            <Award size={12} />
+                            成果 {getProjectAchievementCount(project)}
+                          </button>
+                        )}
                       </div>
 
                       <div className="w-full max-w-md mb-4">

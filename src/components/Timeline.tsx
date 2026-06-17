@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import {
   Circle,
@@ -19,6 +19,7 @@ interface TimelineProps {
   nodes: ProjectNode[];
   users: User[];
   editable?: boolean;
+  initialExpandedNodeId?: string | null;
 }
 
 const statusConfig = {
@@ -58,14 +59,20 @@ const priorityConfig = {
   low: { color: 'bg-gray-100 text-gray-600 border-gray-200', label: '低优先级' },
 };
 
-export default function Timeline({ nodes, users, editable = false }: TimelineProps) {
-  const [expandedNodeId, setExpandedNodeId] = useState<string | null>(null);
+export default function Timeline({ nodes, users, editable = false, initialExpandedNodeId = null }: TimelineProps) {
+  const [expandedNodeId, setExpandedNodeId] = useState<string | null>(initialExpandedNodeId);
   const [editingNode, setEditingNode] = useState<{
     node: ProjectNode;
     type: 'progress' | 'achievement' | 'difficulty';
   } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [progressValue, setProgressValue] = useState(0);
+
+  useEffect(() => {
+    if (initialExpandedNodeId) {
+      setExpandedNodeId(initialExpandedNodeId);
+    }
+  }, [initialExpandedNodeId]);
 
   const getUser = (userId: string) => users.find((u) => u.id === userId);
 

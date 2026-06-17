@@ -5,7 +5,7 @@ import {
   User,
   FolderKanban,
 } from 'lucide-react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getProjectById } from '../../services/projects';
 import { getTeam } from '../../services/team';
 import StatusBadge from '../../components/StatusBadge';
@@ -28,7 +28,9 @@ const subjectColorMap: Record<string, string> = {
 export default function ResearcherProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuthStore();
+  const expandNodeId = (location.state as { expandNodeId?: string } | null)?.expandNodeId ?? null;
   const [project, setProject] = useState<Project | null>(null);
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -245,6 +247,7 @@ export default function ResearcherProjectDetail() {
           nodes={project.nodes}
           users={team}
           editable={true}
+          initialExpandedNodeId={expandNodeId}
         />
       </div>
     </div>
