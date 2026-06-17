@@ -14,6 +14,7 @@ import Timeline from '../../components/Timeline';
 import { formatDate } from '../../utils/format';
 import type { Project, TeamMember } from '../../../shared/types';
 import { cn } from '../../lib/utils';
+import { useAuthStore } from '../../store/authStore';
 
 const subjectColorMap: Record<string, string> = {
   '物理学': 'bg-blue-100 text-blue-700',
@@ -27,6 +28,7 @@ const subjectColorMap: Record<string, string> = {
 export default function ResearcherProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [project, setProject] = useState<Project | null>(null);
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +75,11 @@ export default function ResearcherProjectDetail() {
   };
 
   const handleBack = () => {
-    navigate('/researcher/projects');
+    if (user?.role === 'admin') {
+      navigate('/admin/dashboard');
+    } else {
+      navigate('/researcher/projects');
+    }
   };
 
   if (loading) {

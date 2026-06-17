@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   FlaskConical,
@@ -30,6 +31,7 @@ const statusFilters = [
 
 export default function AdminDashboard() {
   const { subjects, selectedSubject, selectedStatus, setSelectedSubject, setSelectedStatus, clearFilters } = useAppStore();
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -270,7 +272,10 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="flex items-center gap-2 ml-4">
-                      <button className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                      <button
+                        onClick={() => navigate(`/admin/projects/${project.id}`)}
+                        className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                      >
                         <Eye size={16} />
                         查看详情
                       </button>

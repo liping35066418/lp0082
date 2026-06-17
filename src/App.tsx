@@ -84,6 +84,16 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/projects/:id"
+          element={
+            <ProtectedRoute role="admin">
+              <Layout>
+                <ResearcherProjectDetail />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
   );
